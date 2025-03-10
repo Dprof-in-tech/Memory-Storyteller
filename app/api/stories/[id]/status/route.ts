@@ -7,7 +7,13 @@ import { getServerSession } from 'next-auth';
 import prisma from '@/lib/db';
 import { authOptions } from '@/app/api/auth/authOptions';
 
-export async function GET(request: any, { params }: { params: { id: string } }) {
+export type StoryMetadata = {
+    generationStatus?: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+    completedAt?: string;
+    error?: string;
+  };
+
+export async function GET(request: any, { params }: { params: any }) {
   const session = await getServerSession(authOptions);
   
   if (!session) {
@@ -39,8 +45,8 @@ export async function GET(request: any, { params }: { params: { id: string } }) 
     }
     
     // Extract generation status from metadata
-    const metadata = story.metadata || {};
-    const generationStatus = metadata.generationStatus || 'UNKNOWN';
+    const metadata = (story.metadata as StoryMetadata | null) || {};
+const generationStatus = metadata.generationStatus || 'UNKNOWN';
     
     // Determine if content is the placeholder text
     const isPlaceholder = story.content === "Your story is being crafted with care...";

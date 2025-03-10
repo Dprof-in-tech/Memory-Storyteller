@@ -9,7 +9,7 @@ import { generateStory } from '@/lib/claude';
 import { generateStoryWithChatGPT } from '@/lib/openai';
 import { authOptions } from '@/app/api/auth/authOptions';
 
-export async function POST(request: any, { params }: { params: { id: string } }) {
+export async function POST(request: any, { params }: { params: any }) {
   const session = await getServerSession(authOptions);
   
   if (!session) {
