@@ -15,48 +15,32 @@ export async function generateStory(memory: any) {
     const metadata = memory.metadata || {};
     
     const prompt = `
-      Create a heartfelt short story about this memory:
-      
-      BASIC DETAILS:
-      Title: ${memory.title}
-      Date: ${new Date(memory.date).toLocaleDateString()}
-      
-      SETTING THE SCENE:
-      Location: ${memory.location || 'Not specified'}
-      Time and Weather: ${metadata.timeAndWeather || 'Not specified'}
-      Sensory Details: ${memory.sensoryDetails || 'Not specified'}
-      
-      CHARACTERS:
-      People Present: ${memory.people || 'Not specified'}
-      What They Were Doing: ${metadata.peopleActions || 'Not specified'}
-      How They Looked/Acted: ${metadata.peopleAppearance || 'Not specified'}
-      
-      THE STORY:
-      What Happened Before: ${metadata.leadUp || 'Not specified'}
-      Key Moment: ${metadata.keyMoment || 'Not specified'}
-      Scene Description: ${memory.description || 'Not specified'}
-      
-      EMOTIONS:
-      Initial Feelings: ${metadata.initialFeeling || 'Not specified'}
-      Emotional Journey: ${metadata.emotionalJourney || 'Not specified'}
-      Strongest Emotion: ${metadata.strongestEmotion || 'Not specified'}
-      General Feelings: ${memory.feelings || 'Not specified'}
-      
-      SIGNIFICANCE:
-      Impact: ${metadata.impact || 'Not specified'}
-      What I Would Change: ${metadata.wouldChange || 'Not specified'}
-      Why This Memory Is Special: ${memory.significance || 'Not specified'}
-      
-      WRITING INSTRUCTIONS:
-      1. Write in first person as if I'm telling this memory to my partner named ${memory.partnerName || 'my love'}.
-      2. Maintain a warm and intimate tone.
-      3. Include sensory details to make the memory vivid.
-      4. Structure the story with a clear beginning, middle, and end.
-      5. Keep the story between 400-600 words.
-      6. End with a reflection on why this memory matters to our relationship.
-      7. Make the narrative flow naturally, incorporating all the relevant details provided.
-      8. Use descriptive language that evokes the emotions mentioned.
-    `;
+    Create a heartfelt story based on this memory:
+    
+    CONTEXT:
+    - Title: ${memory.title}
+    - Date: ${new Date(memory.date).toLocaleDateString()}
+    - Location: ${memory.location || ''}
+    - Weather/Time: ${metadata.timeAndWeather || ''}
+    - People: ${memory.people || ''} ${metadata.peopleActions ? `(${metadata.peopleActions})` : ''} ${metadata.peopleAppearance ? `(${metadata.peopleAppearance})` : ''}
+    - Before: ${metadata.leadUp || ''}
+    - Key Moment: ${metadata.keyMoment || ''}
+    - Scene: ${memory.description || ''}
+    
+    FEELINGS:
+    - Initial: ${metadata.initialFeeling || ''}
+    - Journey: ${metadata.emotionalJourney || ''}
+    - Strongest: ${metadata.strongestEmotion || ''}
+    - Overall: ${memory.feelings || ''}
+    
+    MEANING:
+    - Impact: ${metadata.impact || ''} 
+    - Would change: ${metadata.wouldChange || ''}
+    - Significance: ${memory.significance || ''}
+    - Sensory details: ${memory.sensoryDetails || ''}
+    
+    REQUIREMENTS:
+    Write 400-600 words in first person to ${memory.partnerName || 'my love'}. Warm, intimate tone with sensory details. Clear beginning, middle, end. Conclude with why this memory matters to our relationship. Use natural flow and evocative language.`;
 
     console.log('Sending request to Claude API...');
     
