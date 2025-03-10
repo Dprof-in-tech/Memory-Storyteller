@@ -1,24 +1,77 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // /app/components/StoryDetail.js
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 
 export default function StoryDetail({ story }: {story: any}) {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isDelivering, setIsDelivering] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deliveryDate, setDeliveryDate] = useState(
     story.scheduledFor ? new Date(story.scheduledFor).toISOString().slice(0, 16) : ''
   );
   const [isUpdating, setIsUpdating] = useState(false);
+  const [storyContent, setStoryContent] = useState(story.content);
+
+  // Check if story is still being generated
+  useEffect(() => {
+    // Extract generation status from metadata
+    const metadata = story.metadata || {};
+    const generationStatus = metadata.generationStatus || 'UNKNOWN';
+    
+    // If story is still being generated
+    if (generationStatus === 'PENDING' || generationStatus === 'PROCESSING') {
+      setIsGenerating(true);
+      
+      // Poll for completion
+      const interval = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/stories/${story.id}/status`);
+          const data = await response.json();
+          
+          if (data.isComplete) {
+            // Story generation completed, fetch the updated story
+            clearInterval(interval);
+            fetchStory();
+          } else if (data.isFailed) {
+            // Story generation failed
+            clearInterval(interval);
+            setIsGenerating(false);
+            alert('Story generation failed. Please try again.');
+          }
+        } catch (error) {
+          console.error('Error checking story status:', error);
+        }
+      }, 3000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [story.id, story.metadata]);
+
+  // Fetch the latest story content
+  const fetchStory = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/stories/${story.id}`);
+      const updatedStory = await response.json();
+      setStoryContent(updatedStory.content);
+      setIsGenerating(false);
+    } catch (error) {
+      console.error('Error fetching story:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Determine which AI model was used
   const aiModelName = story.aiModel === 'chatgpt' ? 'ChatGPT' : 'Claude AI';
   const aiModelClass = story.aiModel === 'chatgpt' ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800';
-
 
   const deliverStory = async () => {
     if (!confirm('Are you sure you want to send this story via WhatsApp now?')) {
@@ -99,6 +152,16 @@ export default function StoryDetail({ story }: {story: any}) {
     }
   };
 
+  if (isGenerating) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+        <h2 className="text-xl font-semibold">Crafting your story...</h2>
+        <p className="text-gray-500 mt-2">We&apos;re using {aiModelName} to create your story. This may take up to a minute.</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -136,7 +199,7 @@ export default function StoryDetail({ story }: {story: any}) {
       
       <div className="prose prose-indigo max-w-none">
         {/* Render story content with paragraph breaks */}
-        {story.content.split('\n\n').map((paragraph: any, index: any) => (
+        {storyContent.split('\n\n').map((paragraph: any, index: any) => (
           <p key={index}>{paragraph}</p>
         ))}
       </div>

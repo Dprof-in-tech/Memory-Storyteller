@@ -13,11 +13,14 @@ export default function MemoryDetail({ memory }: {memory: any}) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deliveryDate, setDeliveryDate] = useState('');
   const [aiModel, setAiModel] = useState('claude'); 
+  const [generationError, setGenerationError] = useState('');
 
   const generateStory = async () => {
     setIsGenerating(true);
+    setGenerationError('');
     
     try {
+      // Step 1: Create a placeholder story
       const response = await fetch('/api/stories', {
         method: 'POST',
         headers: {
@@ -29,21 +32,58 @@ export default function MemoryDetail({ memory }: {memory: any}) {
           aiModel: aiModel,
         }),
       });
-
-      console.log('story response', response);
       
       if (!response.ok) {
-        throw new Error('Failed to generate story');
+        throw new Error('Failed to start story generation');
       }
       
-      const story = await response.json();
-      router.push(`/stories/${story.id}`);
+      const data = await response.json();
+      const storyId = data.id;
+      
+      // Step 2: Trigger the background generation process
+      const generateResponse = await fetch(`/api/stories/${storyId}/generate`, {
+        method: 'POST',
+      });
+      
+      if (!generateResponse.ok) {
+        throw new Error('Failed to trigger story generation');
+      }
+      
+      // Step 3: Start polling for completion
+      startPolling(storyId);
     } catch (error) {
       console.error('Error generating story:', error);
-      alert('Failed to generate story. Please try again.');
-    } finally {
+      setGenerationError('Failed to generate story. Please try again.');
       setIsGenerating(false);
     }
+  };
+
+  // Poll for story generation completion
+  const startPolling = (storyId: any) => {
+    const checkInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/stories/${storyId}/status`);
+        const data = await response.json();
+        
+        if (data.isComplete) {
+          // Story generation completed successfully
+          clearInterval(checkInterval);
+          setIsGenerating(false);
+          router.push(`/stories/${storyId}`);
+        } else if (data.isFailed) {
+          // Story generation failed
+          clearInterval(checkInterval);
+          setIsGenerating(false);
+          setGenerationError('Story generation failed. Please try again.');
+        }
+        // Continue polling if still processing
+      } catch (error) {
+        console.error('Error checking story status:', error);
+        clearInterval(checkInterval);
+        setIsGenerating(false);
+        setGenerationError('Error checking story status. Please try again.');
+      }
+    }, 3000); // Check every 3 seconds
   };
 
   const deleteMemory = async () => {
@@ -166,6 +206,12 @@ export default function MemoryDetail({ memory }: {memory: any}) {
         
         <div className="mt-6 border-t pt-6">
           <h3 className="text-lg font-medium mb-4">Generate a New Story</h3>
+
+          {generationError && (
+            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+              {generationError}
+            </div>
+          )}
           
           <div className="space-y-4">
             <div>
@@ -225,8 +271,25 @@ export default function MemoryDetail({ memory }: {memory: any}) {
             disabled={isGenerating}
             className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            {isGenerating ? 'Generating...' : `Generate Story with ${aiModel === 'claude' ? 'Claude AI' : 'ChatGPT'}`}
+           {isGenerating ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Creating Story...
+              </>
+            ) : (
+              `Generate Story with ${aiModel === 'claude' ? 'Claude AI' : 'ChatGPT'}`
+            )}
           </button>
+
+
+          {isGenerating && (
+            <p className="mt-2 text-sm text-gray-500">
+              This may take up to a minute. You&apos;ll be redirected when the story is ready.
+            </p>
+          )}
         </div>
       </div>
     </div>

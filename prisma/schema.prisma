@@ -64,4 +64,5 @@ model Story {
   aiModel         String   @default("claude")  // claude, chatgpt
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+   metadata        Json?  
 }
