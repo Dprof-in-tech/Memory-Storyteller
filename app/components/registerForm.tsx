@@ -92,7 +92,7 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="w-[600px] my-auto bg-white rounded-xl px-6 py-4 text-black">
+    <div className="w-[92%] lg:w-[600px] my-auto bg-white rounded-xl px-6 py-4 text-black">
       <h1 className="text-2xl font-bold mb-6">Create an Account</h1>
       
       {error && (

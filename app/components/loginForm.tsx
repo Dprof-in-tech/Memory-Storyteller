@@ -60,7 +60,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="bg-white w-[450px] p-8 text-black rounded-xl">
+    <div className="bg-white w-[92%] lg:w-[450px] p-8 text-black rounded-xl">
       <h1 className="text-2xl font-bold mb-6">Sign In</h1>
       
       {message && (
