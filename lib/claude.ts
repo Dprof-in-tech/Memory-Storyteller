@@ -9,7 +9,6 @@ const anthropic = new Anthropic({
 
 export async function generateStory(memory: any) {
   try {
-    console.log('Generating story with Claude for memory:', memory.title);
     
     // Extract metadata fields if they exist
     const metadata = memory.metadata || {};
@@ -42,17 +41,13 @@ export async function generateStory(memory: any) {
     REQUIREMENTS:
     Write 400-600 words in first person to ${memory.partnerName || 'my love'}. Warm, intimate tone with sensory details. Clear beginning, middle, end. Conclude with why this memory matters to our relationship. Use natural flow and evocative language.`;
 
-    console.log('Sending request to Claude API...');
-    
     const response = await anthropic.messages.create({
-      model: 'claude-3-opus-20240229',
+      model: 'claude-3-7-sonnet-20250219',
       max_tokens: 1500,
       messages: [
         { role: 'user', content: prompt }
       ],
     });
-
-    console.log('Received response from Claude API');
     
     // Use type assertion to tell TypeScript we know the structure
     return (response.content[0] as any).text;

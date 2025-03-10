@@ -9,7 +9,6 @@ const openai = new OpenAI({
 
 export async function generateStoryWithChatGPT(memory: any) {
   try {
-    console.log('Generating story with ChatGPT for memory:', memory.title);
     
     // Extract metadata fields if they exist
     const metadata = memory.metadata || {};
@@ -57,11 +56,6 @@ export async function generateStoryWithChatGPT(memory: any) {
       7. Make the narrative flow naturally, incorporating all the relevant details provided.
       8. Use descriptive language that evokes the emotions mentioned.
     `;
-
-    console.log('Sending request to ChatGPT API...');
-    
-    // Add detailed logging
-    console.log('Using model:', 'gpt-3.5-turbo');
     
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
@@ -73,7 +67,6 @@ export async function generateStoryWithChatGPT(memory: any) {
       max_tokens: 1500,
     });
 
-    console.log('Received response from ChatGPT API');
     
     // Better response handling with more detailed logging
     if (!response || !response.choices || !response.choices.length) {
@@ -88,19 +81,12 @@ export async function generateStoryWithChatGPT(memory: any) {
     }
     
     const storyContent = choice.message.content.trim();
-    console.log('Successfully extracted story content, length:', storyContent.length);
     
     return storyContent;
   } catch (error:any) {
-    // Detailed error logging
-    console.error('Error generating story with ChatGPT:', error);
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    
+ 
     // If it's an OpenAI API error, log more details
     if (error.response) {
-      console.error('OpenAI API error status:', error.response.status);
       console.error('OpenAI API error data:', error.response.data);
     }
     
