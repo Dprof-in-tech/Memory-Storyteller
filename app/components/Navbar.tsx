@@ -1,0 +1,180 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// /app/components/Navbar.js
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
+
+interface NavbarProps {
+  session: any;
+}
+
+export default function Navbar({ session }: NavbarProps) {
+  const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    router.push('/');
+    router.refresh();
+  };
+
+  return (
+    <nav className="bg-white shadow fixed w-full z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Link href="/" className="text-indigo-600 font-bold text-xl">
+                Memory Storyteller
+              </Link>
+            </div>
+          </div>
+          
+          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+            {session ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/memories/add"
+                  className="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600"
+                >
+                  Add Memory
+                </Link>
+                <Link
+                  href="/profile"
+                  className="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600"
+                >
+                  Profile
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="ml-4 px-3 py-2 rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
+          </div>
+          
+          <div className="-mr-2 flex items-center sm:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+            >
+              <span className="sr-only">Open main menu</span>
+              <svg
+                className={`${isMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+              <svg
+                className={`${isMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div className={`${isMenuOpen ? 'block' : 'hidden'} sm:hidden`}>
+        <div className="pt-2 pb-3 space-y-1">
+          {session ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/memories/add"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Add Memory
+              </Link>
+              <Link
+                href="/profile"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Profile
+              </Link>
+              <button
+                onClick={() => {
+                  handleSignOut();
+                  setIsMenuOpen(false);
+                }}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Get Started
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}

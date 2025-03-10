@@ -24,3 +24,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+.prose p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}

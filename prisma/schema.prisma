@@ -1,0 +1,67 @@
+// /prisma/schema.prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // You can use SQLite for simpler setup
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String     @id @default(cuid())
+  name              String
+  email             String     @unique
+  password          String
+  partnerName       String?
+  phoneNumber       String?    // Your own phone number
+  partnerPhoneNumber String?   // Your partner's phone number for WhatsApp delivery
+  memories          Memory[]
+  stories           Story[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model Memory {
+  id              String   @id @default(cuid())
+  title           String
+  date            DateTime
+  location        String?
+  people          String?
+  description     String
+  feelings        String?
+  sensoryDetails  String?
+  significance    String?
+  photos          Photo[]
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String
+  stories         Story[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  memory    Memory   @relation(fields: [memoryId], references: [id])
+  memoryId  String
+  createdAt DateTime @default(now())
+}
+
+model Story {
+  id              String   @id @default(cuid())
+  title           String
+  content         String   @db.Text
+  memory          Memory   @relation(fields: [memoryId], references: [id])
+  memoryId        String
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String
+  scheduledFor    DateTime?
+  deliveryStatus  String   @default("PENDING") // PENDING, SENT, FAILED
+  aiModel         String   @default("claude")  // claude, chatgpt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

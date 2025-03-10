@@ -9,19 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@prisma/client": "^6.4.1",
+    "bcrypt": "^5.1.1",
+    "date-fns": "^4.1.0",
+    "next": "15.2.1",
+    "next-auth": "^4.24.11",
+    "node-cron": "^3.0.3",
+    "openai": "^4.86.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.2.1"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^5.0.2",
     "@types/node": "^20",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.2.1",
-    "@eslint/eslintrc": "^3"
+    "prisma": "^6.4.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
