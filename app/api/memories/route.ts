@@ -42,7 +42,7 @@ export async function POST(request: any) {
   try {
     const data = await request.json();
     
-    // Create the memory
+    // Store the main fields in the database
     const memory = await prisma.memory.create({
       data: {
         title: data.title,
@@ -53,6 +53,21 @@ export async function POST(request: any) {
         feelings: data.feelings,
         sensoryDetails: data.sensoryDetails,
         significance: data.significance,
+        // Store extra fields as JSON in the metadata field if your schema supports it
+        // If not, you could add this field to your schema
+        metadata: {
+          timeAndWeather: data.timeAndWeather || '',
+          peopleActions: data.peopleActions || '',
+          peopleAppearance: data.peopleAppearance || '',
+          leadUp: data.leadUp || '',
+          keyMoment: data.keyMoment || '',
+          sceneDescription: data.sceneDescription || '',
+          initialFeeling: data.initialFeeling || '',
+          emotionalJourney: data.emotionalJourney || '',
+          strongestEmotion: data.strongestEmotion || '',
+          impact: data.impact || '',
+          wouldChange: data.wouldChange || '',
+        },
         user: {
           connect: { id: session.user.id },
         },

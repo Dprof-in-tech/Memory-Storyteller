@@ -1,6 +1,5 @@
 // /prisma/schema.prisma
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Updated with metadata field for enhanced memory details
 
 generator client {
   provider = "prisma-client-js"
@@ -35,6 +34,7 @@ model Memory {
   feelings        String?
   sensoryDetails  String?
   significance    String?
+  metadata        Json?    // New field for additional structured memory details
   photos          Photo[]
   user            User     @relation(fields: [userId], references: [id])
   userId          String
