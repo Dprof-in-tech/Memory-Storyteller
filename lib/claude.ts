@@ -42,8 +42,8 @@ export async function generateStory(memory: any) {
     Write 400-600 words in first person to ${memory.partnerName || 'my love'}. Warm, intimate tone with sensory details. Clear beginning, middle, end. Conclude with why this memory matters to our relationship. Use natural flow and evocative language.`;
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-7-sonnet-20250219',
-      max_tokens: 1500,
+      model: 'claude-3-opus-20240229',
+      max_tokens: 1000,
       messages: [
         { role: 'user', content: prompt }
       ],
