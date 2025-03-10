@@ -19,6 +19,7 @@ export default function RegisterForm() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -30,6 +31,11 @@ export default function RegisterForm() {
     setError('');
 
     // Basic validation
+    if (!termsAccepted) {
+      setError('You must accept the Terms and Conditions to create an account');
+      return;
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -210,6 +216,27 @@ export default function RegisterForm() {
           <p className="text-xs text-gray-500 mt-1">
             Your stories will be sent to this number. Include country code (e.g., +1 for USA)
           </p>
+        </div>
+
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              id="terms"
+              name="terms"
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="terms" className="text-gray-600">
+              I accept the{' '}
+              <Link href="/terms" className="text-indigo-600 hover:text-indigo-800 underline">
+                Terms and Conditions & Privacy Policy
+              </Link>
+            </label>
+          </div>
         </div>
         
         <button

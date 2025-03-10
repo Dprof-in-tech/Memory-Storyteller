@@ -6,6 +6,7 @@ import AuthProvider from './components/AuthProvider';
 import ConditionalLayout from './components/conditionalLayout';
 import { ReactNode } from 'react';
 import { authOptions } from './api/auth/authOptions';
+import TermsConsent from './components/TermsConsent';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,6 +25,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <ConditionalLayout session={session}>
             {children}
           </ConditionalLayout>
+          <TermsConsent />
         </AuthProvider>
       </body>
     </html>

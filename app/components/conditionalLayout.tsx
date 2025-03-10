@@ -14,12 +14,13 @@ export default function ConditionalLayout({
   session: any;
 }) {
   const pathname = usePathname();
-  const isHomePage = pathname === '/' || pathname === '/register' || pathname === '/login';
+  const hideNavbarPaths = ['/', '/register', '/login', '/terms'];
+  const isHiddenPath = hideNavbarPaths.includes(pathname);
   
   return (
     <>
-      {!isHomePage && <Navbar session={session} />}
-      <main className={`min-h-screen ${!isHomePage ? 'pt-16' : ''} pb-10`}>
+      {!isHiddenPath && <Navbar session={session} />}
+      <main className={`min-h-screen ${!isHiddenPath ? 'pt-16' : ''} pb-10`}>
         {children}
       </main>
     </>

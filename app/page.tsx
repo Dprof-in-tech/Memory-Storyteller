@@ -49,12 +49,6 @@ export default async function Home() {
           </div>
         </div>
       </main>
-      
-      {/* <footer className="w-full flex clec-col items-center justify-center">
-          <p className="text-center text-base text-gray-400">
-            &copy; 2025 Memory Storyteller. All rights reserved.
-          </p>
-      </footer> */}
     </div>
   );
 }

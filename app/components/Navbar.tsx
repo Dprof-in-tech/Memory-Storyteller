@@ -54,6 +54,12 @@ export default function Navbar({ session }: NavbarProps) {
                 >
                   Profile
                 </Link>
+                <Link 
+              href="/terms" 
+              className="text-base text-gray-500 hover:text-gray-900"
+            >
+              Terms & Privacy
+            </Link>
                 <button
                   onClick={handleSignOut}
                   className="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600"
