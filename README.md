@@ -28,7 +28,11 @@ In the hustle of daily life, it's easy to forget the beautiful little moments th
 
 There's something magical about receiving an unexpected message that brings a cherished memory to life. Memory Storyteller helps me give that gift to the person I love most in the world.
 
-## 🚀 Getting Started
+## 🚀 Wanna use this tool too to make your partner smile?
+
+If yes, visit [https://memory-storyteller.vercel.app/](Memory-storyteller) with your browser to start creating memory stories.
+
+## 🚀 Getting Started for DEVELOPERS WITH PARTNERS
 
 ### Prerequisites
 
