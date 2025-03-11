@@ -30,7 +30,7 @@ There's something magical about receiving an unexpected message that brings a ch
 
 ## 🚀 Wanna use this tool too to make your partner smile?
 
-If yes, visit [https://memory-storyteller.vercel.app/](Memory-storyteller) with your browser to start creating memory stories.
+If yes, visit [Memory-storyteller](https://memory-storyteller.vercel.app/) with your browser to start creating memory stories.
 
 ## 🚀 Getting Started for DEVELOPERS WITH PARTNERS
 
