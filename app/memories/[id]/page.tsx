@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /app/memories/[id]/page.js
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/authOptions';
 import { redirect } from 'next/navigation';

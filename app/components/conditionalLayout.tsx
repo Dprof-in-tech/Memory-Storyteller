@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /app/components/ConditionalLayout.tsx
 'use client';
 
 import { usePathname } from 'next/navigation';

@@ -1,4 +1,3 @@
-// /app/terms/page.js
 import Link from 'next/link';
 import { format } from 'date-fns';
 

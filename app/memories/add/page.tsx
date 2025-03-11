@@ -1,4 +1,3 @@
-// /app/memories/add/page.js
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/authOptions';
 import { redirect } from 'next/navigation';

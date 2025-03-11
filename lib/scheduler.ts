@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /lib/scheduler.js - Updated to use partner's phone number
 import cron from 'node-cron';
 import prisma from './db';
 import { sendWhatsAppMessage } from './whatsapp';

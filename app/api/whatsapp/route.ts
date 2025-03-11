@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /app/api/whatsapp/route.js
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';

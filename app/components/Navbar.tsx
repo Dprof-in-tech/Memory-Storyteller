@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /app/components/Navbar.js
 'use client';
 
 import { useState } from 'react';

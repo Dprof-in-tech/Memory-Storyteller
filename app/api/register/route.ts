@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /app/api/register/route.js
 import { NextResponse } from 'next/server';
 import { hash } from 'bcrypt';
 import prisma from '@/lib/db';

@@ -1,4 +1,3 @@
-// /app/profile/page.js
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../api/auth/authOptions';
 import { redirect } from 'next/navigation';

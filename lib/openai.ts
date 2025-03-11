@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /lib/openai.js
 import OpenAI from 'openai';
 
 // Initialize the OpenAI client with API key from environment variables

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /app/components/UserProfile.js
 'use client';
 
 import { useState, useEffect } from 'react';

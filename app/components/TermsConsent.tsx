@@ -1,4 +1,3 @@
-// /app/components/TermsConsent.js
 'use client';
 
 import { useState, useEffect } from 'react';

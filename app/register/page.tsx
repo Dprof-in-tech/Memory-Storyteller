@@ -1,4 +1,3 @@
-// /app/register/page.js
 import RegisterForm from "../components/registerForm";
 
 export default function RegisterPage() {

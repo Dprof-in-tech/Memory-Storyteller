@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// Ensure your Claude integration is correct
 import { Anthropic } from '@anthropic-ai/sdk';
 
 // Correctly initialize the Anthropic client

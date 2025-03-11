@@ -1,5 +1,4 @@
 /* eslint-disable react/no-unescaped-entities */
-// /app/components/Dashboard.js
 
 'use client';
 

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /lib/whatsapp.js - Updated to use Green API
 export async function sendWhatsAppMessage(phoneNumber: any, message: any) {
   try {
     // Green API credentials from environment variables

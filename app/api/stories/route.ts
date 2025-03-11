@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /app/api/stories/route.js
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /app/components/StoryDetail.js
 'use client';
 
 import { useState, useEffect } from 'react';
