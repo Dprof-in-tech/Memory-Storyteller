@@ -188,7 +188,5 @@ Sent with ❤️ from ${senderName}
   }
 }
 
-// Initialize scheduler for production builds
-if (process.env.NODE_ENV === 'production') {
+
   initScheduler();
-}
