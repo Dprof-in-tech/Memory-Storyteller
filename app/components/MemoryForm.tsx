@@ -1,66 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export default function MemoryForm() {
   const router = useRouter();
-  const [memory, setMemory] = useState<{
-    title: string;
-    date: string;
-    // Beginning
-    location: string;
-    timeAndWeather: string;
-    sensoryImpression: string;
-    // Characters
-    peoplePresent: string;
-    peopleActions: string;
-    peopleAppearance: string;
-    // Middle
-    leadUp: string;
-    keyMoment: string;
-    sceneDescription: string;
-    // Emotions
-    initialFeeling: string;
-    emotionalJourney: string;
-    strongestEmotion: string;
-    // End/Reflection
-    impact: string;
-    wouldChange: string;
-    significance: string;
-    // Photos
-    photos: string[];
-  }>({
+  const { data: session } = useSession();
+  const [memory, setMemory] = useState({
     title: '',
     date: '',
-    // Beginning
-    location: '',
-    timeAndWeather: '',
-    sensoryImpression: '',
-    // Characters
-    peoplePresent: '',
-    peopleActions: '',
-    peopleAppearance: '',
-    // Middle
-    leadUp: '',
-    keyMoment: '',
-    sceneDescription: '',
-    // Emotions
-    initialFeeling: '',
-    emotionalJourney: '',
-    strongestEmotion: '',
-    // End/Reflection
-    impact: '',
-    wouldChange: '',
+    memory: '',
     significance: '',
-    // Photos
+    people: '',
+    location: '',
     photos: [],
   });
   
-  const [activeSection, setActiveSection] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photoFiles, setPhotoFiles] = useState<any[]>([]);
+  const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -68,50 +29,105 @@ export default function MemoryForm() {
   };
 
   const handlePhotoUpload = (e: any) => {
-    // In a real app, you'd handle file upload to a service like Cloudinary
-    console.log('Photo upload:', e.target.files);
-    // For simplicity, we're just acknowledging the upload here
-    setMemory((prev) => ({ 
-      ...prev, 
-      photos: [...prev.photos, 'photo-url-placeholder'] 
+    if (e.target.files && e.target.files.length > 0) {
+      // Store the actual file objects for later submission
+      const newFiles = Array.from(e.target.files);
+      setPhotoFiles([...photoFiles, ...newFiles]);
+      
+      // Create preview URLs for display
+      const newPreviewUrls = newFiles.map((file: any) => URL.createObjectURL(file));
+      setPhotoPreviewUrls([...photoPreviewUrls, ...newPreviewUrls]);
+      
+      // We'll replace these with actual paths after upload
+      setMemory((prev: any) => ({ 
+        ...prev, 
+        photos: [...prev.photos, ...newFiles.map(() => '')] 
+      }));
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    const updatedFiles = [...photoFiles];
+    updatedFiles.splice(index, 1);
+    setPhotoFiles(updatedFiles);
+
+    const updatedPreviews = [...photoPreviewUrls];
+    // Revoke the object URL to prevent memory leaks
+    URL.revokeObjectURL(updatedPreviews[index]);
+    updatedPreviews.splice(index, 1);
+    setPhotoPreviewUrls(updatedPreviews);
+
+    const updatedPhotos = [...memory.photos];
+    updatedPhotos.splice(index, 1);
+    setMemory(prev => ({
+      ...prev,
+      photos: updatedPhotos
     }));
+  };
+
+  const uploadPhotos = async (files: File[]): Promise<string[]> => {
+    if (!files.length) return [];
+    if (!session?.user) throw new Error('User not authenticated');
+    
+    // Sanitize user ID - remove spaces and special characters
+    const rawUserId = session.user.name || session.user.email || 'anonymous';
+    const userId = rawUserId.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+    
+    // Create a single timestamp for all files in this upload batch
+    // This ensures the timestamp is the same for all files
+    const batchTimestamp = new Date().getTime();
+    
+    const uploadPromises = files.map(async (file, index) => {
+      // Sanitize the filename
+      const safeFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      // Create a consistent filename that will be used both client & server-side
+      const filename = `${batchTimestamp}-${index}-${safeFilename}`;
+      
+      // Create form data for the upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', userId);
+      formData.append('filename', filename); // Pass the predetermined filename
+      
+      // Send the file to our API endpoint
+      const response = await fetch('/api/upload-photo', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to upload photo: ${errorData.error || 'Unknown error'}`);
+      }
+      
+      // Return the same path that we're expecting the server to use
+      return `/uploads/${userId}/${filename}`;
+    });
+    
+    // Wait for all uploads to complete
+    return Promise.all(uploadPromises);
   };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    // Transform the new structure back to the API expected format
-    const apiMemory = {
-      title: memory.title,
-      date: memory.date,
-      location: memory.location,
-      people: memory.peoplePresent,
-      description: `
-${memory.sceneDescription}
-
-Lead up: ${memory.leadUp}
-Key moment: ${memory.keyMoment}
-Time and weather: ${memory.timeAndWeather}
-      `.trim(),
-      feelings: `
-Initial feeling: ${memory.initialFeeling}
-Emotional journey: ${memory.emotionalJourney}
-Strongest emotion: ${memory.strongestEmotion}
-      `.trim(),
-      sensoryDetails: memory.sensoryImpression,
-      significance: `
-Impact: ${memory.impact}
-What I would change: ${memory.wouldChange}
-Why this memory is special: ${memory.significance}
-      `.trim(),
-      photos: memory.photos,
-      // Include additional fields for AI context
-      peopleActions: memory.peopleActions,
-      peopleAppearance: memory.peopleAppearance,
-    };
+    setUploadProgress(0);
 
     try {
+      // First, upload the photos
+      const uploadedPhotoUrls = await uploadPhotos(photoFiles);
+
+      // Format the memory for API submission
+      const apiMemory = {
+        title: memory.title,
+        date: memory.date,
+        description: memory.memory,
+        significance: memory.significance,
+        people: memory.people,
+        location: memory.location,
+        photos: uploadedPhotoUrls,
+      };
+
       const response = await fetch('/api/memories', {
         method: 'POST',
         headers: {
@@ -125,320 +141,196 @@ Why this memory is special: ${memory.significance}
       }
 
       const data = await response.json();
+      
+      // Clean up the object URLs to prevent memory leaks
+      photoPreviewUrls.forEach(url => URL.revokeObjectURL(url));
+      
       router.push(`/memories/${data.id}`);
     } catch (error) {
       console.error('Error saving memory:', error);
       alert('Failed to save your memory. Please try again.');
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
-
-  const sections = [
-    {
-      title: "Basic Details",
-      fields: [
-        {
-          name: "title",
-          label: "Memory Title",
-          type: "text",
-          required: true,
-        },
-        {
-          name: "date",
-          label: "When did this happen?",
-          type: "date",
-          required: true,
-        },
-      ],
-    },
-    {
-      title: "1. Let's Set the Scene (Beginning)",
-      fields: [
-        {
-          name: "location",
-          label: "Where did this memory happen?",
-          type: "text",
-          required: false,
-        },
-        {
-          name: "timeAndWeather",
-          label: "What time of day was it? What was the weather like?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-        {
-          name: "sensoryImpression",
-          label: "What do you remember seeing, hearing, or smelling?",
-          type: "textarea", 
-          rows: 3,
-          required: false,
-        },
-      ],
-    },
-    {
-      title: "2. The Characters",
-      fields: [
-        {
-          name: "peoplePresent",
-          label: "Who was there with you?",
-          type: "text",
-          required: false,
-        },
-        {
-          name: "peopleActions",
-          label: "What were they doing? What did they say?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-        {
-          name: "peopleAppearance",
-          label: "How did they look or act?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-      ],
-    },
-    {
-      title: "3. The Story (the middle)",
-      fields: [
-        {
-          name: "leadUp",
-          label: "What happened before this moment?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-        {
-          name: "keyMoment",
-          label: "What was the most important part?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-        {
-          name: "sceneDescription",
-          label: "If you had to describe this as a movie scene, what would happen?",
-          type: "textarea",
-          rows: 3,
-          required: true,
-        },
-      ],
-    },
-    {
-      title: "4. Emotions and Feelings",
-      fields: [
-        {
-          name: "initialFeeling",
-          label: "How did you feel in that moment?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-        {
-          name: "emotionalJourney",
-          label: "Did your emotions change during the memory? Why?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-        {
-          name: "strongestEmotion",
-          label: "What's the strongest feeling you remember?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-      ],
-    },
-    {
-      title: "5. From future me (the end)",
-      fields: [
-        {
-          name: "impact",
-          label: "Did this memory change anything for you?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-        {
-          name: "wouldChange",
-          label: "If you could relive it, would you change anything?",
-          type: "textarea",
-          rows: 2,
-          required: false,
-        },
-        {
-          name: "significance",
-          label: "Why is this memory special to you?",
-          type: "textarea",
-          rows: 3,
-          required: false,
-        },
-      ],
-    },
-    {
-      title: "6. Photos (Optional)",
-      fields: [
-        {
-          name: "photos",
-          label: "Upload photos from this memory",
-          type: "file",
-          required: false,
-        },
-      ],
-    },
-  ];
-
-  const nextSection = () => {
-    if (activeSection < sections.length - 1) {
-      setActiveSection(activeSection + 1);
-      window.scrollTo(0, 0);
-    }
-  };
-
-  const prevSection = () => {
-    if (activeSection > 0) {
-      setActiveSection(activeSection - 1);
-      window.scrollTo(0, 0);
-    }
-  };
-
-  const renderField = (field: any) => {
-    switch (field.type) {
-      case 'text':
-      case 'date':
-        return (
-          <input
-            type={field.type}
-            id={field.name}
-            name={field.name}
-            value={memory[field.name as keyof typeof memory] as string}
-            onChange={handleChange}
-            required={field.required}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          />
-        );
-      case 'textarea':
-        return (
-          <textarea
-            id={field.name}
-            name={field.name}
-            rows={field.rows || 3}
-            value={memory[field.name as keyof typeof memory] as string}
-            onChange={handleChange}
-            required={field.required}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            placeholder={field.placeholder}
-          />
-        );
-      case 'file':
-        return (
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handlePhotoUpload}
-            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const currentSection = sections[activeSection];
 
   return (
-    <div>
-      {/* Progress indicator */}
-      <div className="mb-6">
-        <div className="flex justify-between mb-2">
-          {sections.map((section, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setActiveSection(idx)}
-              className={`rounded-full h-8 w-8 flex items-center justify-center text-sm font-medium ${
-                idx === activeSection
-                  ? 'bg-indigo-600 text-white'
-                  : idx < activeSection
-                  ? 'bg-indigo-200 text-indigo-800'
-                  : 'bg-gray-200 text-gray-500'
-              }`}
-            >
-              {idx + 1}
-            </button>
-          ))}
-        </div>
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center" aria-hidden="true">
-            <div className="h-0.5 w-full bg-gray-200"></div>
-          </div>
-          <div className="relative flex justify-between">
-            {sections.map((section, idx) => (
-              <div key={idx} className="h-0.5">
-                <div
-                  className={`h-0.5 ${
-                    idx <= activeSection ? 'bg-indigo-600' : 'bg-gray-200'
-                  }`}
-                  style={{
-                    width: idx === sections.length - 1 ? '0' : (idx < activeSection ? '100%' : '0')
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
+    <div className="max-w-3xl mx-auto text-black">
+      <h1 className="text-2xl font-bold mb-6">Capture a Memory</h1>
+      
       <form onSubmit={handleSubmit} className="space-y-6">
-        <h2 className="text-xl font-semibold mb-4">{currentSection.title}</h2>
-        
-        <div className="space-y-4">
-          {currentSection.fields.map((field) => (
-            <div key={field.name}>
-              <label htmlFor={field.name} className="block text-sm font-medium text-gray-700">
-                {field.label} {field.required && <span className="text-red-500">*</span>}
-              </label>
-              {renderField(field)}
-            </div>
-          ))}
+        {/* Basic Details */}
+        <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
+          <div>
+            <label htmlFor="title" className="block text-lg font-medium text-gray-700 mb-1">
+              What would you call this memory? <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={memory.title}
+              onChange={handleChange}
+              required
+              placeholder="e.g., First camping trip with Dad, Sarah's graduation"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="date" className="block text-lg font-medium text-gray-700 mb-1">
+              When did this happen? <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              value={memory.date}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3"
+            />
+          </div>
         </div>
-
-        <div className="flex justify-between pt-4">
-          {activeSection > 0 && (
-            <button
-              type="button"
-              onClick={prevSection}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Previous
-            </button>
-          )}
+        
+        {/* The Memory */}
+        <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
+          <div>
+            <label htmlFor="memory" className="block text-lg font-medium text-gray-700 mb-1">
+              Share your memory the way you remember it <span className="text-red-500">*</span>
+            </label>
+            <p className="text-sm text-gray-500 mb-2">
+              Tell the story in your own words. What happened? How did it feel?
+            </p>
+            <textarea
+              id="memory"
+              name="memory"
+              rows={6}
+              value={memory.memory}
+              onChange={handleChange}
+              required
+              placeholder="I remember it was starting to rain when we..."
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3"
+            />
+          </div>
+        </div>
+        
+        {/* Additional Context (Optional) */}
+        <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
+          <h2 className="text-lg font-medium text-gray-700">A few more details that help bring the memory to life</h2>
           
-          <div className="flex-1"></div>
+          <div>
+            <label htmlFor="people" className="block text-base font-medium text-gray-700 mb-1">
+              Who was there with you?
+            </label>
+            <input
+              type="text"
+              id="people"
+              name="people"
+              value={memory.people}
+              onChange={handleChange}
+              placeholder="e.g., Mom, Dad, Sarah, my dog Rex"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3"
+            />
+          </div>
           
-          {activeSection < sections.length - 1 ? (
-            <button
-              type="button"
-              onClick={nextSection}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {isSubmitting ? 'Saving...' : 'Save Memory'}
-            </button>
-          )}
+          <div>
+            <label htmlFor="location" className="block text-base font-medium text-gray-700 mb-1">
+              Where did this happen?
+            </label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={memory.location}
+              onChange={handleChange}
+              placeholder="e.g., Grandma's house, Yosemite National Park"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="significance" className="block text-base font-medium text-gray-700 mb-1">
+              Why is this memory special to you?
+            </label>
+            <textarea
+              id="significance"
+              name="significance"
+              rows={3}
+              value={memory.significance}
+              onChange={handleChange}
+              placeholder="This memory matters to me because..."
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-3"
+            />
+          </div>
+        </div>
+        
+        {/* Photos */}
+        <div className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
+          <div>
+            <label htmlFor="photos" className="block text-lg font-medium text-gray-700 mb-1">
+              Add photos from this memory
+            </label>
+            <p className="text-sm text-gray-500 mb-2">
+              Images help bring your memories to life
+            </p>
+            <input
+              type="file"
+              id="photos"
+              multiple
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 px-4 py-3"
+            />
+            
+            {/* Photo previews */}
+            {photoPreviewUrls.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {photoPreviewUrls.map((url, index) => (
+                  <div key={index} className="relative">
+                    <img 
+                      src={url} 
+                      alt={`Preview ${index}`} 
+                      className="h-32 w-full object-cover rounded-md"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(index)}
+                      className="absolute top-1 right-1 rounded-full bg-red-500 text-white w-6 h-6 flex items-center justify-center"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Upload Progress */}
+        {isSubmitting && photoFiles.length > 0 && (
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h3 className="text-sm font-medium text-gray-700 mb-1">Uploading photos...</h3>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="bg-indigo-600 h-2.5 rounded-full" 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">{Math.round(uploadProgress)}% complete</p>
+          </div>
+        )}
+        
+        {/* Submit Button */}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : 'Save This Memory'}
+          </button>
         </div>
       </form>
     </div>

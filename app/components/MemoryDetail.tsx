@@ -111,6 +111,10 @@ export default function MemoryDetail({ memory }: {memory: any}) {
     }
   };
 
+  function removeWhitespace(input: string): string {
+    return input.replace(/\s+/g, '');
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -163,7 +167,7 @@ export default function MemoryDetail({ memory }: {memory: any}) {
               {memory.photos.map((photo: any) => (
                 <div key={photo.id} className="aspect-w-1 aspect-h-1">
                   <img
-                    src={photo.url}
+                    src={removeWhitespace(photo.url)}
                     alt="Memory"
                     className="object-cover rounded-lg"
                   />

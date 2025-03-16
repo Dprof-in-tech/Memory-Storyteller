@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import prisma from '@/lib/db';
 import { authOptions } from '../../auth/authOptions';
+import fs from 'fs';
+import path from 'path';
+
 
 // GET /api/memories/[id] - Retrieve a specific memory
 export async function GET(request: any, { params }: {params: any}) {
@@ -91,6 +94,17 @@ export async function PUT(request: any, { params }: {params: any}) {
 }
 
 // DELETE /api/memories/[id] - Delete a memory
+// Function to check if a directory is empty
+function isDirEmpty(dirname: string): boolean {
+  try {
+    const files = fs.readdirSync(dirname);
+    return files.length === 0;
+  } catch (error) {
+    console.error(`Error checking if directory is empty: ${dirname}`, error);
+    return false;
+  }
+}
+
 export async function DELETE(request: any, { params }:{params: any}) {
   const session = await getServerSession(authOptions);
   
@@ -104,6 +118,9 @@ export async function DELETE(request: any, { params }:{params: any}) {
       where: {
         id: params.id,
       },
+      include: {
+        photos: true, // Include photos to get their paths
+      },
     });
     
     if (!existingMemory) {
@@ -114,7 +131,36 @@ export async function DELETE(request: any, { params }:{params: any}) {
       return NextResponse.json({ error: 'Not authorized to delete this memory' }, { status: 403 });
     }
     
-    // Delete associated photos first
+    // Track unique directories that need to be checked later
+    const directories = new Set<string>();
+    
+    // Delete the actual image files
+    if (existingMemory.photos && existingMemory.photos.length > 0) {
+      for (const photo of existingMemory.photos) {
+        try {
+          // Get the file path from the photo URL
+          // Example: if URL is /uploads/userId/filename.jpg, we need to delete public/uploads/userId/filename.jpg
+          const relativePath = photo.url;
+          const filePath = path.join(process.cwd(), 'public', relativePath);
+          
+          // Store the directory for later cleanup check
+          const dirPath = path.dirname(filePath);
+          directories.add(dirPath);
+          
+          // Check if file exists
+          if (fs.existsSync(filePath)) {
+            // Delete the file
+            fs.unlinkSync(filePath);
+            console.log(`Deleted file: ${filePath}`);
+          }
+        } catch (fileError) {
+          // Log error but continue with deletion process
+          console.error(`Error deleting file for photo ${photo.id}:`, fileError);
+        }
+      }
+    }
+    
+    // Delete associated photos from database
     await prisma.photo.deleteMany({
       where: {
         memoryId: params.id,
@@ -133,6 +179,28 @@ export async function DELETE(request: any, { params }:{params: any}) {
       where: {
         id: params.id,
       },
+    });
+    
+    // Clean up empty directories
+    directories.forEach(dir => {
+      try {
+        if (isDirEmpty(dir)) {
+          fs.rmdirSync(dir);
+          console.log(`Removed empty directory: ${dir}`);
+          
+          // Check if parent directory is now empty
+          const parentDir = path.dirname(dir);
+          const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+          
+          // Only remove parent if it's not the main uploads directory
+          if (parentDir !== uploadsDir && isDirEmpty(parentDir)) {
+            fs.rmdirSync(parentDir);
+            console.log(`Removed empty parent directory: ${parentDir}`);
+          }
+        }
+      } catch (dirError) {
+        console.error(`Error removing directory: ${dir}`, dirError);
+      }
     });
     
     return NextResponse.json({ success: true });
