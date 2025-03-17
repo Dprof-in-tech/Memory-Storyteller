@@ -50,7 +50,7 @@ export async function generateStoryWithChatGPT(memory: any) {
       2. Maintain a warm and intimate tone.
       3. Include sensory details to make the memory vivid.
       4. Structure the story with a clear beginning, middle, and end.
-      5. Keep the story between 400-600 words.
+      5. Keep the story between 300-400 words.
       6. End with a reflection on why this memory matters to our relationship.
       7. Make the narrative flow naturally, incorporating all the relevant details provided.
       8. Use descriptive language that evokes the emotions mentioned.
